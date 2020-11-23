@@ -188,3 +188,9 @@ SDEMYCOEST419 <- SDEMYCOEST419 %>%  mutate(ent = str_pad(ent, 2, pad = "0"),
                                            hij5c=ifelse(hij5c==5,"No especificado",hij5c))
 
 SYC419_svyset <- SDEMYCOEST419 %>% as_survey_design(strata = est, weights = fac, id = upm, nest=TRUE)
+
+
+
+
+##prueba Zaid
+###afsddgfhjhk567890'
