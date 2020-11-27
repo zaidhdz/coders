@@ -1,10 +1,10 @@
 
 pacman::p_load(tidyverse, rebus, survey, srvyr, gridExtra, haven, stringr)
 
-SDEMYCOEST419 <- read_dta(paste0(carpeta_enoe, "4T/limpia/sdemycoest419.dta"))
+SDEMYCOEST320 <- read_dta(paste0(carpeta_enoe, "4T/limpia/sdemycoest419.dta"))
 
 
-SDEMYCOEST419 <- SDEMYCOEST419 %>%  mutate(ent = str_pad(ent, 2, pad = "0"),
+SDEMYCOEST320 <- SDEMYCOEST320 %>%  mutate(ent = str_pad(ent, 2, pad = "0"),
                                            sex=ifelse(sex==1,"Hombre",sex),
                                            sex=ifelse(sex==2,"Mujer",sex),
                                            niv_ins=ifelse(niv_ins==0,"No aplica",niv_ins),
@@ -187,10 +187,42 @@ SDEMYCOEST419 <- SDEMYCOEST419 %>%  mutate(ent = str_pad(ent, 2, pad = "0"),
                                            hij5c=ifelse(hij5c==4,"De 6 hijos y más",hij5c),
                                            hij5c=ifelse(hij5c==5,"No especificado",hij5c))
 
-SYC419_svyset <- SDEMYCOEST419 %>% as_survey_design(strata = est, weights = fac, id = upm, nest=TRUE)
+SYC320_svyset <- SDEMYCOEST419 %>% as_survey_design(strata = est, weights = fac, id = upm, nest=TRUE)
 
 
 
 
-##prueba Zaid
-###afsddgfhjhk567890'
+##APORTACIÓN DE ZAID
+
+Ocupados_ETA_CDMX_H <- svytable(~eda7c+pos_ocu+sex, design = subset(SYC320_svyset, ent== "09")) %>% 
+  data.frame() %>% filter(Freq != 0) %>% rename(Total = Freq) %>% mutate(ent= "CDMX") %>%  
+  filter(sex != "Mujer") %>%  mutate(sexo = c("Hombre CDMX")) %>% filter(pos_ocu %in% c("Subordinados y remunerados")) %>% 
+  mutate(Porcentaje = 100 * (Total / sum(Total))*-1)
+
+Ocupados_ETA_CDMX_M <- svytable(~eda7c+pos_ocu+sex, design = subset(SYC320_svyset, ent== "09")) %>% 
+  data.frame() %>% filter(Freq != 0) %>% rename(Total = Freq) %>% mutate(ent= "CDMX") %>%  
+  filter(sex != "Hombre") %>% mutate(sexo = c("Mujer CDMX")) %>% filter(pos_ocu %in% c("Subordinados y remunerados")) %>% 
+  mutate(Porcentaje = 100 * (Total / sum(Total)))
+
+Ocupados_ETA_CDMX <- bind_rows(Ocupados_ETA_CDMX_H,Ocupados_ETA_CDMX_M) %>% mutate(prueba = sum(Total))
+rm(Ocupados_ETA_CDMX_H,Ocupados_ETA_CDMX_M)
+
+temp_df <-
+  Ocupados_ETA_CDMX %>% 
+  filter(sexo == c("Hombre CDMX")) 
+
+the_order <- temp_df$eda7c
+
+graph3 <- 
+  plot_ly(Ocupados_ETA_CDMX, y=~eda7c, x=~Porcentaje, type="bar",
+          color = ~sexo, colors = c("#00b140","#7343be"),  orientation="v")
+
+graph3 <- graph3 %>%
+  layout(
+    xaxis = list(
+      ticktext = list("10.","20.","10","20"), 
+      tickvals = list(-10,-20, 10, 20),
+      tickmode = "array"
+    ))
+
+graph3  
